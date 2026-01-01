@@ -27,16 +27,11 @@ error_exit() {
   exit 1
 }
 
-# Checks if a command exists.  Returns 1 or 0
-command_exists() {
-  hash "${1}" 2>/dev/null
-}
-
 # Program Functions ------------------------------------------------------------
 
 verify_prereqs() {
   echo "Verifying Prerequisites...."
-  if command_exists gsutil; then
+  if type "gsutil" > /dev/null; then
     echo "Thumbs up! Looks like you have gsutil. Let's continue."
   else
     error_exit "Couldn't find gsutil. Bailing out."
@@ -44,7 +39,7 @@ verify_prereqs() {
 }
 
 confirm() {
-  case $response in
+  case $REPLY in
     [yY][eE][sS]|[yY])
       true
       ;;
@@ -66,11 +61,11 @@ main() {
   verify_prereqs
 
   # dry run of the command
-  gsutil rsync -d -n $1 gs://$2
+  gsutil rsync -d -n "$1" gs://"$2"
 
-  read -p "Are you sure you would like to continue with these changes? [y/N]} " confirm
+  read -r -p "Are you sure you would like to continue with these changes? [y/N]} " confirm
   if [[ $confirm =~ [yY](es)* ]]; then
-    gsutil rsync -d $1 gs://$2
+    gsutil rsync -d "$1" gs://"$2"
   else
     error_exit "Discontinuing sync process."
   fi

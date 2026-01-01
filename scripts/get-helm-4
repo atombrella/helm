@@ -59,7 +59,7 @@ initOS() {
 
 # runs the given command as root (detects if we are root already)
 runAsRoot() {
-  if [ $EUID -ne 0 -a "$USE_SUDO" = "true" ]; then
+  if [ $EUID -ne 0 ] && [ "$USE_SUDO" = "true" ]; then
     sudo "${@}"
   else
     "${@}"
@@ -112,7 +112,7 @@ verifySupported() {
 
 # checkDesiredVersion checks if the desired version is available.
 checkDesiredVersion() {
-  if [ "x$DESIRED_VERSION" == "x" ]; then
+  if [ "$DESIRED_VERSION" == "" ]; then
     # Get tag from release URL
     local latest_release_url="https://get.helm.sh/helm4-latest-version"
     local latest_release_response=""
@@ -122,7 +122,7 @@ checkDesiredVersion() {
       latest_release_response=$( wget "$latest_release_url" -q -O - 2>&1 || true )
     fi
     TAG=$( echo "$latest_release_response" | grep '^v[0-9]' )
-    if [ "x$TAG" == "x" ]; then
+    if [ "$TAG" == "" ]; then
       printf "Could not retrieve the latest release tag information from %s: %s\n" "${latest_release_url}" "${latest_release_response}"
       exit 1
     fi
@@ -193,8 +193,8 @@ installFile() {
 # verifyChecksum verifies the SHA256 checksum of the binary package.
 verifyChecksum() {
   printf "Verifying checksum... "
-  local sum=$(openssl sha1 -sha256 ${HELM_TMP_FILE} | awk '{print $2}')
-  local expected_sum=$(cat ${HELM_SUM_FILE})
+  local sum=$(openssl sha1 -sha256 "${HELM_TMP_FILE}" | awk '{print $2}')
+  local expected_sum=$(cat "${HELM_SUM_FILE}")
   if [ "$sum" != "$expected_sum" ]; then
     echo "SHA sum of ${HELM_TMP_FILE} does not match. Aborting."
     exit 1
